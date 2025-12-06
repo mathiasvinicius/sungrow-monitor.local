@@ -39,7 +39,7 @@ async function fetchStatus() {
         }
         const data = await response.json();
         updateDashboard(data);
-        setOnlineStatus(true);
+        setOnlineStatus(data.is_online === true);
     } catch (error) {
         console.error('Error fetching status:', error);
         setOnlineStatus(false);
@@ -71,9 +71,9 @@ function updateDashboard(data) {
     elements.mppt2Power.textContent = formatNumber(mppt2Power, 0);
 
     // Grid
-    elements.gridVoltage.textContent = formatNumber(data.phase_a_voltage_v, 1);
+    elements.gridVoltage.textContent = formatNumber(data.grid_voltage_v, 1);
     elements.gridFrequency.textContent = formatNumber(data.grid_frequency_hz, 1);
-    elements.gridCurrent.textContent = formatNumber(data.phase_a_current_a, 2);
+    elements.gridCurrent.textContent = formatNumber(data.grid_current_a, 2);
     elements.powerFactor.textContent = formatNumber(data.power_factor, 3);
 
     // Status

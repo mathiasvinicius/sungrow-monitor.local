@@ -30,20 +30,15 @@ type InverterReading struct {
 	MPPT2Current float64 `json:"mppt2_current_a"`
 	TotalDCPower uint32  `json:"total_dc_power_w"`
 
-	// Grid
-	PhaseAVoltage float64 `json:"phase_a_voltage_v"`
-	PhaseBVoltage float64 `json:"phase_b_voltage_v"`
-	PhaseCVoltage float64 `json:"phase_c_voltage_v"`
+	// Grid (single phase)
+	GridVoltage   float64 `json:"grid_voltage_v"`
 	GridFrequency float64 `json:"grid_frequency_hz"`
-	PhaseACurrent float64 `json:"phase_a_current_a"`
-	PhaseBCurrent float64 `json:"phase_b_current_a"`
-	PhaseCCurrent float64 `json:"phase_c_current_a"`
+	GridCurrent   float64 `json:"grid_current_a"`
 
 	// Power
-	TotalActivePower   uint32  `json:"total_active_power_w"`
-	ReactivePower      int32   `json:"reactive_power_var"`
-	PowerFactor        float64 `json:"power_factor"`
-	TotalApparentPower uint32  `json:"total_apparent_power_va"`
+	TotalActivePower uint32  `json:"total_active_power_w"`
+	ReactivePower    int32   `json:"reactive_power_var"`
+	PowerFactor      float64 `json:"power_factor"`
 
 	// Status
 	RunningState       uint16 `json:"running_state"`
@@ -53,9 +48,9 @@ type InverterReading struct {
 }
 
 type DailyStats struct {
-	Date            time.Time `json:"date"`
-	MaxPower        uint32    `json:"max_power_w"`
-	TotalEnergy     float64   `json:"total_energy_kwh"`
-	AvgTemperature  float64   `json:"avg_temperature_c"`
-	ReadingsCount   int64     `json:"readings_count"`
+	Date           time.Time `json:"date"`
+	MaxPower       uint32    `json:"max_power_w"`
+	TotalEnergy    float64   `json:"total_energy_kwh"`
+	AvgTemperature float64   `json:"avg_temperature_c"`
+	ReadingsCount  int64     `json:"readings_count"`
 }
