@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /bin/bash appuser
 
 # Create directories
-RUN mkdir -p /data /etc/sungrow-monitor /app/web && chown -R appuser:appuser /data /app
+RUN mkdir -p /data /etc/sungrow-monitor /app/web
 
 # Copy binary from builder
 COPY --from=builder /app/sungrow-monitor /usr/local/bin/sungrow-monitor
@@ -43,6 +43,9 @@ COPY config.yaml /etc/sungrow-monitor/config.yaml
 
 # Copy web assets
 COPY web/ /app/web/
+
+# Set permissions
+RUN chown -R appuser:appuser /data /app
 
 # Switch to non-root user
 USER appuser
