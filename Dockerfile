@@ -6,14 +6,11 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache gcc musl-dev
 
-# Copy go mod files
-COPY go.mod go.sum* ./
-
-# Download dependencies
-RUN go mod download
-
-# Copy source code
+# Copy source code first
 COPY . .
+
+# Download dependencies and generate go.sum
+RUN go mod tidy
 
 # Build the binary
 RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o sungrow-monitor ./cmd/sungrow-monitor
