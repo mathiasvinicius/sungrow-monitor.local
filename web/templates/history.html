@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sungrow Monitor - Historico</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container h2 {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: var(--energy-color);
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            background: var(--card-bg);
+            border-color: var(--energy-color);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--energy-color);
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        td {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sungrow SG5.0RS-S</h1>
+            <div class="nav-links">
+                <a href="/">Dashboard</a>
+                <a href="/history" class="active">Historico</a>
+            </div>
+        </header>
+
+        <main>
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Energia Hoje</div>
+                    <div class="value" id="daily-energy">-- kWh</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Pico de Potencia</div>
+                    <div class="value" id="max-power">-- W</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Leituras Hoje</div>
+                    <div class="value" id="readings-count">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Temp. Media</div>
+                    <div class="value" id="avg-temp">-- °C</div>
+                </div>
+            </div>
+
+            <!-- Power Chart -->
+            <div class="chart-container">
+                <h2>Potencia (ultimas 2 horas)</h2>
+                <canvas id="powerChart"></canvas>
+            </div>
+
+            <!-- Energy Chart -->
+            <div class="chart-container">
+                <h2>Energia Diaria</h2>
+                <canvas id="energyChart"></canvas>
+            </div>
+
+            <!-- Recent Readings Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Ultimas Leituras</h2>
+                </div>
+                <div class="card-body table-container">
+                    <table id="readings-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Potencia</th>
+                                <th>Energia</th>
+                                <th>Temp</th>
+                                <th>Tensao</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="readings-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Sungrow Monitor v1.0</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let powerChart, energyChart;
+
+        // Initialize charts
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 2.5,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#a0a0a0' }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#a0a0a0' }
+                    }
+                }
+            };
+
+            powerChart = new Chart(document.getElementById('powerChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Potencia (W)',
+                        data: [],
+                        borderColor: '#00d26a',
+                        backgroundColor: 'rgba(0, 210, 106, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: chartOptions
+            });
+
+            energyChart = new Chart(document.getElementById('energyChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Energia (kWh)',
+                        data: [],
+                        borderColor: '#4dc3ff',
+                        backgroundColor: 'rgba(77, 195, 255, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Fetch readings
+        async function fetchReadings() {
+            try {
+                const response = await fetch(`${API_BASE}/readings?limit=200`);
+                const data = await response.json();
+                updateCharts(data);
+                updateTable(data.slice(0, 20));
+            } catch (error) {
+                console.error('Error fetching readings:', error);
+            }
+        }
+
+        // Fetch daily stats
+        async function fetchStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats/daily`);
+                const data = await response.json();
+                document.getElementById('daily-energy').textContent = (data.total_energy_kwh || 0).toFixed(1) + ' kWh';
+                document.getElementById('max-power').textContent = (data.max_power_w || 0) + ' W';
+                document.getElementById('readings-count').textContent = data.readings_count || 0;
+                document.getElementById('avg-temp').textContent = (data.avg_temperature_c || 0).toFixed(1) + ' °C';
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+
+        // Update charts
+        function updateCharts(readings) {
+            if (!readings || readings.length === 0) return;
+
+            // Reverse to show oldest first
+            const sorted = [...readings].reverse();
+
+            const labels = sorted.map(r => {
+                const d = new Date(r.timestamp);
+                return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            });
+
+            const powerData = sorted.map(r => r.total_active_power_w || 0);
+            const energyData = sorted.map(r => r.daily_energy_kwh || 0);
+
+            powerChart.data.labels = labels;
+            powerChart.data.datasets[0].data = powerData;
+            powerChart.update();
+
+            energyChart.data.labels = labels;
+            energyChart.data.datasets[0].data = energyData;
+            energyChart.update();
+        }
+
+        // Update table
+        function updateTable(readings) {
+            const tbody = document.getElementById('readings-tbody');
+            tbody.innerHTML = '';
+
+            readings.forEach(r => {
+                const d = new Date(r.timestamp);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${d.toLocaleTimeString('pt-BR')}</td>
+                    <td>${r.total_active_power_w || 0} W</td>
+                    <td>${(r.daily_energy_kwh || 0).toFixed(1)} kWh</td>
+                    <td>${(r.temperature_c || 0).toFixed(1)} °C</td>
+                    <td>${(r.grid_voltage_v || 0).toFixed(1)} V</td>
+                    <td>${r.is_online ? 'Online' : 'Offline'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initialize
+        initCharts();
+        fetchReadings();
+        fetchStats();
+
+        // Refresh every 30 seconds
+        setInterval(() => {
+            fetchReadings();
+            fetchStats();
+        }, 30000);
+    </script>
+</body>
+</html>

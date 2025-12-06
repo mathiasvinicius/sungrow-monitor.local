@@ -65,6 +65,7 @@ func (s *Server) setupRoutes() {
 	// Dashboard routes
 	s.router.GET("/", s.dashboardHandler)
 	s.router.GET("/dashboard", s.dashboardHandler)
+	s.router.GET("/history", s.historyHandler)
 
 	// Health check
 	s.router.GET("/health", s.healthHandler)
@@ -84,6 +85,12 @@ func (s *Server) setupRoutes() {
 func (s *Server) dashboardHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
 		"title": "Sungrow Monitor",
+	})
+}
+
+func (s *Server) historyHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "history.html", gin.H{
+		"title": "Sungrow Monitor - Historico",
 	})
 }
 
