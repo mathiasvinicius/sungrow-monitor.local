@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sungrow Monitor - Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sungrow SG5.0RS-S</h1>
+            <div class="status-indicator">
+                <span id="status-dot" class="status-dot offline"></span>
+                <span id="status-text">Offline</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Power Card -->
+            <div class="card power-card">
+                <div class="card-header">
+                    <h2>Potência Atual</h2>
+                </div>
+                <div class="card-body">
+                    <div class="big-value">
+                        <span id="power-value">--</span>
+                        <span class="unit">W</span>
+                    </div>
+                    <div class="power-bar-container">
+                        <div id="power-bar" class="power-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="power-max">Nominal: 5.0 kW</div>
+                </div>
+            </div>
+
+            <!-- Energy Cards -->
+            <div class="card-group">
+                <div class="card energy-card">
+                    <div class="card-header">
+                        <h2>Energia Hoje</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="medium-value">
+                            <span id="daily-energy">--</span>
+                            <span class="unit">kWh</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card energy-card">
+                    <div class="card-header">
+                        <h2>Energia Total</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="medium-value">
+                            <span id="total-energy">--</span>
+                            <span class="unit">kWh</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MPPT Cards -->
+            <div class="card-group">
+                <div class="card mppt-card">
+                    <div class="card-header">
+                        <h2>MPPT 1</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="mppt-values">
+                            <div class="mppt-item">
+                                <span class="label">Tensao</span>
+                                <span class="value"><span id="mppt1-voltage">--</span> V</span>
+                            </div>
+                            <div class="mppt-item">
+                                <span class="label">Corrente</span>
+                                <span class="value"><span id="mppt1-current">--</span> A</span>
+                            </div>
+                            <div class="mppt-item">
+                                <span class="label">Potencia</span>
+                                <span class="value"><span id="mppt1-power">--</span> W</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mppt-card">
+                    <div class="card-header">
+                        <h2>MPPT 2</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="mppt-values">
+                            <div class="mppt-item">
+                                <span class="label">Tensao</span>
+                                <span class="value"><span id="mppt2-voltage">--</span> V</span>
+                            </div>
+                            <div class="mppt-item">
+                                <span class="label">Corrente</span>
+                                <span class="value"><span id="mppt2-current">--</span> A</span>
+                            </div>
+                            <div class="mppt-item">
+                                <span class="label">Potencia</span>
+                                <span class="value"><span id="mppt2-power">--</span> W</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Card -->
+            <div class="card grid-card">
+                <div class="card-header">
+                    <h2>Rede Eletrica</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid-values">
+                        <div class="grid-item">
+                            <span class="label">Tensao</span>
+                            <span class="value"><span id="grid-voltage">--</span> V</span>
+                        </div>
+                        <div class="grid-item">
+                            <span class="label">Frequencia</span>
+                            <span class="value"><span id="grid-frequency">--</span> Hz</span>
+                        </div>
+                        <div class="grid-item">
+                            <span class="label">Corrente</span>
+                            <span class="value"><span id="grid-current">--</span> A</span>
+                        </div>
+                        <div class="grid-item">
+                            <span class="label">Fator de Potencia</span>
+                            <span class="value"><span id="power-factor">--</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Card -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <h2>Status do Inversor</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-values">
+                        <div class="status-item">
+                            <span class="label">Estado</span>
+                            <span class="value" id="running-state">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Temperatura</span>
+                            <span class="value"><span id="temperature">--</span> °C</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Serial</span>
+                            <span class="value" id="serial-number">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Ultima Atualizacao</span>
+                            <span class="value" id="last-update">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Sungrow Monitor v1.0 | Atualiza a cada 5 segundos</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

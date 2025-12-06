@@ -11,6 +11,7 @@ collector:
 api:
   port: 8080
   enabled: true
+  web_path: "/app/web"
 
 mqtt:
   enabled: true

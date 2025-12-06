@@ -27,8 +27,9 @@ type CollectorConfig struct {
 }
 
 type APIConfig struct {
-	Port    int  `mapstructure:"port"`
-	Enabled bool `mapstructure:"enabled"`
+	Port    int    `mapstructure:"port"`
+	Enabled bool   `mapstructure:"enabled"`
+	WebPath string `mapstructure:"web_path"`
 }
 
 type MQTTConfig struct {
@@ -63,6 +64,7 @@ func Load(configPath string) (*Config, error) {
 	viper.SetDefault("collector.enabled", true)
 	viper.SetDefault("api.port", 8080)
 	viper.SetDefault("api.enabled", true)
+	viper.SetDefault("api.web_path", "./web")
 	viper.SetDefault("mqtt.enabled", true)
 	viper.SetDefault("mqtt.broker", "tcp://localhost:1883")
 	viper.SetDefault("mqtt.topic_prefix", "sungrow")

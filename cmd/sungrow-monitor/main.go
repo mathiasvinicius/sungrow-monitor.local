@@ -118,6 +118,7 @@ func serveCmd() *cobra.Command {
 					Port:      cfg.API.Port,
 					Collector: coll,
 					Database:  db,
+					WebPath:   cfg.API.WebPath,
 				})
 
 				go func() {

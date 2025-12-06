@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -19,12 +20,14 @@ type Server struct {
 	collector *collector.Collector
 	db        *storage.Database
 	port      int
+	webPath   string
 }
 
 type ServerConfig struct {
 	Port      int
 	Collector *collector.Collector
 	Database  *storage.Database
+	WebPath   string
 }
 
 func NewServer(cfg ServerConfig) *Server {
@@ -33,11 +36,18 @@ func NewServer(cfg ServerConfig) *Server {
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
 
+	// Default web path
+	webPath := cfg.WebPath
+	if webPath == "" {
+		webPath = "./web"
+	}
+
 	s := &Server{
 		router:    router,
 		collector: cfg.Collector,
 		db:        cfg.Database,
 		port:      cfg.Port,
+		webPath:   webPath,
 	}
 
 	s.setupRoutes()
@@ -45,8 +55,21 @@ func NewServer(cfg ServerConfig) *Server {
 }
 
 func (s *Server) setupRoutes() {
+	// Load HTML templates
+	tmpl := template.Must(template.ParseGlob(s.webPath + "/templates/*.html"))
+	s.router.SetHTMLTemplate(tmpl)
+
+	// Serve static files
+	s.router.Static("/static", s.webPath+"/static")
+
+	// Dashboard routes
+	s.router.GET("/", s.dashboardHandler)
+	s.router.GET("/dashboard", s.dashboardHandler)
+
+	// Health check
 	s.router.GET("/health", s.healthHandler)
 
+	// API routes
 	api := s.router.Group("/api/v1")
 	{
 		api.GET("/status", s.statusHandler)
@@ -56,6 +79,12 @@ func (s *Server) setupRoutes() {
 		api.GET("/energy/total", s.totalEnergyHandler)
 		api.GET("/stats/daily", s.dailyStatsHandler)
 	}
+}
+
+func (s *Server) dashboardHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"title": "Sungrow Monitor",
+	})
 }
 
 func (s *Server) Start() error {

@@ -27,8 +27,8 @@ RUN apk add --no-cache ca-certificates tzdata
 # Create non-root user
 RUN adduser -D -g '' appuser
 
-# Create data directory
-RUN mkdir -p /data /etc/sungrow-monitor && chown appuser:appuser /data
+# Create directories
+RUN mkdir -p /data /etc/sungrow-monitor /app/web && chown -R appuser:appuser /data /app
 
 # Copy binary from builder
 COPY --from=builder /app/sungrow-monitor /usr/local/bin/sungrow-monitor
@@ -36,10 +36,13 @@ COPY --from=builder /app/sungrow-monitor /usr/local/bin/sungrow-monitor
 # Copy default config
 COPY config.yaml /etc/sungrow-monitor/config.yaml
 
+# Copy web assets
+COPY web/ /app/web/
+
 # Switch to non-root user
 USER appuser
 
-WORKDIR /data
+WORKDIR /app
 
 EXPOSE 8080
 
