@@ -1,5 +1,5 @@
-# Binaries
-sungrow-monitor
+# Binaries (only root level)
+/sungrow-monitor
 *.exe
 *.exe~
 *.dll
