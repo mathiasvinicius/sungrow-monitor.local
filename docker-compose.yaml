@@ -1,0 +1,44 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: sungrow-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - sungrow-net
+
+  sungrow-monitor:
+    build: .
+    container_name: sungrow-monitor
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/etc/sungrow-monitor/config.yaml:ro
+      - sungrow-data:/data
+    depends_on:
+      - mosquitto
+    # Use host network to access local inverter IP
+    # Comment the 'networks' section below and uncomment 'network_mode: host' if needed
+    networks:
+      - sungrow-net
+    # network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    environment:
+      - TZ=America/Sao_Paulo
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  sungrow-data:
+
+networks:
+  sungrow-net:
+    driver: bridge

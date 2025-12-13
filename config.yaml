@@ -1,0 +1,23 @@
+inverter:
+  ip: "172.16.0.120"
+  port: 502
+  slave_id: 1
+  timeout: 10s
+
+collector:
+  interval: 30s
+  enabled: true
+
+api:
+  port: 8080
+  enabled: true
+  web_path: "/app/web"
+
+mqtt:
+  enabled: true
+  broker: "tcp://mosquitto:1883"
+  topic_prefix: "sungrow"
+  client_id: "sungrow-monitor"
+
+database:
+  path: "/data/sungrow.db"
