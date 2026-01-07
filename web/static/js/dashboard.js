@@ -173,6 +173,10 @@ function updateInsights(data) {
     elements.insightDetail.textContent = formatInsightDetail(data);
     elements.insightWeather.textContent = formatInsightWeather(data);
 
+    if (elements.insightComparison) {
+        elements.insightComparison.title = formatComparisonTooltip(data);
+    }
+
     if (data.expected_avg_w && data.actual_power_w && data.ratio) {
         const ratioPercent = (data.ratio * 100).toFixed(0);
         elements.insightComparison.textContent = `${data.actual_power_w}W / ${Math.round(data.expected_avg_w)}W (${ratioPercent}%)`;
@@ -204,6 +208,9 @@ function setInsightsFallback() {
     elements.insightDetail.textContent = '--';
     elements.insightWeather.textContent = '--';
     elements.insightComparison.textContent = '--';
+    if (elements.insightComparison) {
+        elements.insightComparison.title = '';
+    }
 }
 
 function formatInsightDetail(data) {
@@ -227,6 +234,19 @@ function formatInsightDetail(data) {
         return 'Dentro do esperado';
     }
     return '--';
+}
+
+function formatComparisonTooltip(data) {
+    if (!data) {
+        return '';
+    }
+    const days = data.window_days ? `${data.window_days} dias` : '';
+    const bucket = data.bucket_minutes ? `${data.bucket_minutes} min` : '';
+    const suffix = [days, bucket].filter(Boolean).join(', ');
+    if (suffix) {
+        return `Comparação com a média histórica da mesma faixa horária (${suffix}).`;
+    }
+    return 'Comparação com a média histórica da mesma faixa horária.';
 }
 
 // Set online/offline status
