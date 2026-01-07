@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -47,7 +48,8 @@ var (
 
 func (s *Server) bingWallpaperHandler(c *gin.Context) {
 	market := sanitizeBingMarket(c.Query("mkt"))
-	payload, err := getBingWallpaper(c.Request.Context(), market)
+	index := sanitizeBingIndex(c.Query("idx"))
+	payload, err := getBingWallpaper(c.Request.Context(), market, index)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{
 			"error":   "Failed to fetch Bing wallpaper",
@@ -69,16 +71,29 @@ func sanitizeBingMarket(value string) string {
 	return "pt-BR"
 }
 
-func getBingWallpaper(ctx context.Context, market string) (bingWallpaperPayload, error) {
+func sanitizeBingIndex(value string) int {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return 0
+	}
+	idx, err := strconv.Atoi(trimmed)
+	if err != nil || idx < 0 || idx > 7 {
+		return 0
+	}
+	return idx
+}
+
+func getBingWallpaper(ctx context.Context, market string, idx int) (bingWallpaperPayload, error) {
 	now := time.Now()
+	cacheKey := fmt.Sprintf("%s:%d", market, idx)
 	bingWallpaperCacheMu.Lock()
-	entry, ok := bingWallpaperCache[market]
+	entry, ok := bingWallpaperCache[cacheKey]
 	bingWallpaperCacheMu.Unlock()
 	if ok && now.Sub(entry.FetchedAt) < bingWallpaperTTL {
 		return entry.Payload, nil
 	}
 
-	payload, err := fetchBingWallpaper(ctx, market)
+	payload, err := fetchBingWallpaper(ctx, market, idx)
 	if err != nil {
 		if ok {
 			return entry.Payload, nil
@@ -87,7 +102,7 @@ func getBingWallpaper(ctx context.Context, market string) (bingWallpaperPayload,
 	}
 
 	bingWallpaperCacheMu.Lock()
-	bingWallpaperCache[market] = bingWallpaperCacheEntry{
+	bingWallpaperCache[cacheKey] = bingWallpaperCacheEntry{
 		FetchedAt: now,
 		Payload:   payload,
 	}
@@ -95,9 +110,10 @@ func getBingWallpaper(ctx context.Context, market string) (bingWallpaperPayload,
 	return payload, nil
 }
 
-func fetchBingWallpaper(ctx context.Context, market string) (bingWallpaperPayload, error) {
+func fetchBingWallpaper(ctx context.Context, market string, idx int) (bingWallpaperPayload, error) {
 	endpoint := fmt.Sprintf(
-		"https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=%s",
+		"https://www.bing.com/HPImageArchive.aspx?format=js&idx=%d&n=1&mkt=%s",
+		idx,
 		market,
 	)
 

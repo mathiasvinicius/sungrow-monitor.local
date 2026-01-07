@@ -1,7 +1,66 @@
 (() => {
-    const fetchBingWallpaper = async (wallpaper) => {
+    const DEFAULT_MARKET = "pt-BR";
+    const DEFAULT_INDEX = 0;
+
+    const normalizeLabel = (value) => {
+        return String(value || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    };
+
+    const pickBingIndex = (insights) => {
+        const label = normalizeLabel(
+            insights?.weather_label ||
+            insights?.weather?.description ||
+            insights?.weather?.condition
+        );
+
+        if (!label) {
+            return DEFAULT_INDEX;
+        }
+        if (label.includes("temporal") || label.includes("trovoada")) {
+            return 6;
+        }
+        if (label.includes("chuva forte")) {
+            return 5;
+        }
+        if (label.includes("chuva")) {
+            return 4;
+        }
+        if (label.includes("nevoeiro") || label.includes("neblina") || label.includes("fog")) {
+            return 7;
+        }
+        if (label.includes("encoberto") || label.includes("nublado")) {
+            return 3;
+        }
+        if (label.includes("poucas nuvens") || label.includes("parcialmente")) {
+            return 2;
+        }
+        if (label.includes("limpo") || label.includes("clear")) {
+            return 1;
+        }
+        return DEFAULT_INDEX;
+    };
+
+    const fetchInsights = async () => {
         try {
-            const response = await fetch("/api/v1/bing-wallpaper?mkt=pt-BR");
+            const response = await fetch("/api/v1/insights/production");
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.warn("Nao foi possivel obter clima para o fundo:", error);
+            return null;
+        }
+    };
+
+    const fetchBingWallpaper = async (wallpaper, index) => {
+        try {
+            const response = await fetch(
+                `/api/v1/bing-wallpaper?mkt=${DEFAULT_MARKET}&idx=${index}`
+            );
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -24,7 +83,10 @@
         if (!wallpaper) {
             return;
         }
-        fetchBingWallpaper(wallpaper);
+        fetchInsights().then((insights) => {
+            const index = pickBingIndex(insights);
+            fetchBingWallpaper(wallpaper, index);
+        });
     };
 
     if (document.readyState === "loading") {
