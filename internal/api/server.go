@@ -97,6 +97,7 @@ func (s *Server) setupRoutes() {
 	// API routes
 	api := s.router.Group("/api/v1")
 	{
+		api.GET("/bing-wallpaper", s.bingWallpaperHandler)
 		api.GET("/status", s.statusHandler)
 		api.GET("/readings", s.readingsHandler)
 		api.GET("/readings/latest", s.latestReadingHandler)

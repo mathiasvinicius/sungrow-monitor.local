@@ -18,6 +18,7 @@
     --energy-color: #4fc3ff;
     --mppt-color: #ffb347;
     --grid-color: #c084fc;
+    --bing-opacity: 0.1;
 }
 
 * {
@@ -35,10 +36,37 @@ body {
     min-height: 100vh;
 }
 
+.bing-wallpaper {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+}
+
+.bing-wallpaper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.12), transparent 35%),
+                radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.12), transparent 35%),
+                linear-gradient(180deg, rgba(12, 24, 35, 0.5), rgba(12, 24, 35, 0.85));
+}
+
+.bing-wallpaper.visible {
+    opacity: var(--bing-opacity);
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    position: relative;
+    z-index: 1;
 }
 
 header {
