@@ -110,7 +110,7 @@ function updateDashboard(data) {
 function updateInsights(data) {
     elements.insightStatus.textContent = data.message || '--';
     elements.insightDetail.textContent = formatInsightDetail(data);
-    elements.insightWeather.textContent = data.weather_label || '--';
+    elements.insightWeather.textContent = formatInsightWeather(data);
 
     if (data.expected_avg_w && data.actual_power_w && data.ratio) {
         const ratioPercent = (data.ratio * 100).toFixed(0);
@@ -120,6 +120,22 @@ function updateInsights(data) {
     } else {
         elements.insightComparison.textContent = '--';
     }
+}
+
+function formatInsightWeather(data) {
+    if (!data || !data.weather_label) {
+        return '--';
+    }
+    const label = capitalizeFirst(String(data.weather_label));
+    return label || '--';
+}
+
+function capitalizeFirst(value) {
+    const text = (value || '').trim();
+    if (!text) {
+        return '';
+    }
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function setInsightsFallback() {
