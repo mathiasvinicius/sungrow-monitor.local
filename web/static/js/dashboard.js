@@ -28,6 +28,8 @@ const elements = {
     insightStatus: document.getElementById('insight-status'),
     insightDetail: document.getElementById('insight-detail'),
     insightWeather: document.getElementById('insight-weather'),
+    insightWeatherIcon: document.getElementById('insight-weather-icon'),
+    insightWeatherText: document.getElementById('insight-weather-text'),
     insightComparison: document.getElementById('insight-comparison')
 };
 
@@ -171,7 +173,13 @@ function updateDashboard(data) {
 function updateInsights(data) {
     elements.insightStatus.textContent = data.message || '--';
     elements.insightDetail.textContent = formatInsightDetail(data);
-    elements.insightWeather.textContent = formatInsightWeather(data);
+    const weatherText = formatInsightWeather(data);
+    if (elements.insightWeatherText) {
+        elements.insightWeatherText.textContent = weatherText || '--';
+    } else {
+        elements.insightWeather.textContent = weatherText || '--';
+    }
+    renderWeatherIcon(weatherText);
 
     if (elements.insightComparison) {
         elements.insightComparison.title = formatComparisonTooltip(data);
@@ -195,6 +203,102 @@ function formatInsightWeather(data) {
     return label || '--';
 }
 
+function normalizeWeatherLabel(value) {
+    return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+}
+
+function getWeatherIconKey(label) {
+    const normalized = normalizeWeatherLabel(label);
+    if (!normalized || normalized === '--') {
+        return '';
+    }
+    if (normalized.includes('temporal') || normalized.includes('trovoada')) {
+        return 'storm';
+    }
+    if (normalized.includes('chuva forte')) {
+        return 'heavy-rain';
+    }
+    if (normalized.includes('chuva')) {
+        return 'rain';
+    }
+    if (normalized.includes('nevoeiro') || normalized.includes('neblina') || normalized.includes('fog')) {
+        return 'fog';
+    }
+    if (normalized.includes('poucas nuvens') || normalized.includes('parcialmente')) {
+        return 'partly-cloudy';
+    }
+    if (normalized.includes('encoberto') || normalized.includes('nublado')) {
+        return 'cloudy';
+    }
+    if (normalized.includes('limpo') || normalized.includes('clear')) {
+        return 'clear';
+    }
+    return 'cloudy';
+}
+
+function renderWeatherIcon(label) {
+    if (!elements.insightWeatherIcon) {
+        return;
+    }
+
+    const iconKey = getWeatherIconKey(label);
+    if (!iconKey) {
+        elements.insightWeatherIcon.innerHTML = '';
+        return;
+    }
+
+    const icons = {
+        clear: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="3.5"></circle>
+                <path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"></path>
+            </svg>
+        `,
+        'partly-cloudy': `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="3"></circle>
+                <path d="M8.5 2.5v1.8M8.5 12.2V14M3.4 3.4l1.3 1.3M12.3 12.3l1.3 1.3"></path>
+                <path d="M6 18h9a3.5 3.5 0 0 0 0-7 4.5 4.5 0 0 0-8.7-1.2A3.5 3.5 0 0 0 6 18z"></path>
+            </svg>
+        `,
+        cloudy: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 16a4 4 0 0 0 4 4h8a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.2A4 4 0 0 0 4 16z"></path>
+            </svg>
+        `,
+        rain: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 14a4 4 0 0 0 4 4h7a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.2A4 4 0 0 0 4 14z"></path>
+                <path d="M8 20l-1 2M12 20l-1 2M16 20l-1 2"></path>
+            </svg>
+        `,
+        'heavy-rain': `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 13a4 4 0 0 0 4 4h7a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.2A4 4 0 0 0 4 13z"></path>
+                <path d="M7 19l-1.2 2.5M11 19l-1.2 2.5M15 19l-1.2 2.5M19 19l-1.2 2.5"></path>
+            </svg>
+        `,
+        storm: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 14a4 4 0 0 0 4 4h7a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.2A4 4 0 0 0 4 14z"></path>
+                <path d="M12 16l-2 4h2l-1.5 4 4-6h-2l1.5-2z"></path>
+            </svg>
+        `,
+        fog: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 14a4 4 0 0 0 4 4h7a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.2A4 4 0 0 0 4 14z"></path>
+                <path d="M3 19h10M2 22h14"></path>
+            </svg>
+        `
+    };
+
+    elements.insightWeatherIcon.innerHTML = icons[iconKey] || '';
+}
+
 function capitalizeFirst(value) {
     const text = (value || '').trim();
     if (!text) {
@@ -206,10 +310,17 @@ function capitalizeFirst(value) {
 function setInsightsFallback() {
     elements.insightStatus.textContent = '--';
     elements.insightDetail.textContent = '--';
-    elements.insightWeather.textContent = '--';
+    if (elements.insightWeatherText) {
+        elements.insightWeatherText.textContent = '--';
+    } else {
+        elements.insightWeather.textContent = '--';
+    }
     elements.insightComparison.textContent = '--';
     if (elements.insightComparison) {
         elements.insightComparison.title = '';
+    }
+    if (elements.insightWeatherIcon) {
+        elements.insightWeatherIcon.innerHTML = '';
     }
 }
 
