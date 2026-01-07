@@ -31,9 +31,34 @@ const elements = {
     insightComparison: document.getElementById('insight-comparison')
 };
 
+const panelOpacityInput = document.getElementById('panel-opacity');
+const panelOpacityValue = document.getElementById('panel-opacity-value');
+const PANEL_OPACITY_KEY = 'panelOpacity';
+
 // Nominal power in Watts
 const NOMINAL_POWER = 5000;
 const INSIGHT_INTERVAL = 60000; // 60 seconds
+
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function applyPanelOpacity(value) {
+    const percent = clamp(Math.round(value), 30, 90);
+    const alpha = (percent / 100).toFixed(2);
+    document.documentElement.style.setProperty('--card-bg-alpha', alpha);
+    if (panelOpacityValue) {
+        panelOpacityValue.textContent = `${percent}%`;
+    }
+    if (panelOpacityInput) {
+        panelOpacityInput.value = String(percent);
+    }
+    try {
+        localStorage.setItem(PANEL_OPACITY_KEY, String(percent));
+    } catch (error) {
+        console.warn('Falha ao salvar transparência:', error);
+    }
+}
 
 // Fetch data from API
 async function fetchStatus() {
@@ -192,6 +217,23 @@ function formatNumber(value, decimals = 0) {
 // Initial fetch
 fetchStatus();
 fetchInsights();
+
+// Panel opacity control
+if (panelOpacityInput) {
+    let initialValue = 70;
+    try {
+        const stored = Number(localStorage.getItem(PANEL_OPACITY_KEY));
+        if (Number.isFinite(stored)) {
+            initialValue = stored;
+        }
+    } catch (error) {
+        console.warn('Falha ao ler transparência:', error);
+    }
+    applyPanelOpacity(initialValue);
+    panelOpacityInput.addEventListener('input', (event) => {
+        applyPanelOpacity(Number(event.target.value));
+    });
+}
 
 // Set up interval for updates
 setInterval(fetchStatus, UPDATE_INTERVAL);

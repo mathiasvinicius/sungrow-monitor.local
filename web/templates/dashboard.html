@@ -13,9 +13,18 @@
         <header>
             <div class="header-top">
                 <h1>Sungrow SG5.0RS-S</h1>
-                <div class="status-indicator">
-                    <span id="status-dot" class="status-dot offline"></span>
-                    <span id="status-text">Offline</span>
+                <div class="header-status">
+                    <div class="status-indicator">
+                        <span id="status-dot" class="status-dot offline"></span>
+                        <span id="status-text">Offline</span>
+                    </div>
+                    <div class="panel-opacity-control">
+                        <span class="panel-opacity-label">Transparência dos painéis</span>
+                        <div class="panel-opacity-row">
+                            <input type="range" id="panel-opacity" min="30" max="90" step="5" value="70">
+                            <span id="panel-opacity-value">70%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <nav class="nav-links">

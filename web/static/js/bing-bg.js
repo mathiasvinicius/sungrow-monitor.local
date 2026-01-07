@@ -1,4 +1,19 @@
 (() => {
+    const PANEL_OPACITY_KEY = 'panelOpacity';
+
+    const applyStoredOpacity = () => {
+        try {
+            const stored = Number(localStorage.getItem(PANEL_OPACITY_KEY));
+            if (!Number.isFinite(stored)) {
+                return;
+            }
+            const clamped = Math.min(Math.max(Math.round(stored), 30), 90);
+            document.documentElement.style.setProperty('--card-bg-alpha', (clamped / 100).toFixed(2));
+        } catch (error) {
+            console.warn('Falha ao aplicar transparência:', error);
+        }
+    };
+
     const fetchBackground = async (wallpaper) => {
         try {
             const response = await fetch("/api/v1/background/wallpaper?mkt=pt-BR");
@@ -42,6 +57,7 @@
         if (!wallpaper) {
             return;
         }
+        applyStoredOpacity();
         fetchBackground(wallpaper);
     };
 
