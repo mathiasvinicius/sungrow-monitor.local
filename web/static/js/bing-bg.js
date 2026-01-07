@@ -2,8 +2,8 @@
     const PANEL_OPACITY_KEY = 'panelOpacity';
     const PANEL_OPACITY_VERSION_KEY = 'panelOpacityVersion';
     const PANEL_OPACITY_VERSION = '2';
-    const PANEL_OPACITY_MIN = 10;
-    const PANEL_OPACITY_MAX = 95;
+    const PANEL_OPACITY_MIN = 0;
+    const PANEL_OPACITY_MAX = 100;
 
     const applyStoredOpacity = () => {
         try {
