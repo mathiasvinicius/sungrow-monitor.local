@@ -34,6 +34,10 @@ const elements = {
 const panelOpacityInput = document.getElementById('panel-opacity');
 const panelOpacityValue = document.getElementById('panel-opacity-value');
 const PANEL_OPACITY_KEY = 'panelOpacity';
+const PANEL_OPACITY_VERSION_KEY = 'panelOpacityVersion';
+const PANEL_OPACITY_VERSION = '2';
+const PANEL_OPACITY_MIN = 10;
+const PANEL_OPACITY_MAX = 95;
 
 // Nominal power in Watts
 const NOMINAL_POWER = 5000;
@@ -43,9 +47,40 @@ function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+function loadPanelTransparency() {
+    let storedValue = null;
+    try {
+        const raw = localStorage.getItem(PANEL_OPACITY_KEY);
+        const parsed = Number(raw);
+        if (Number.isFinite(parsed)) {
+            storedValue = parsed;
+        }
+    } catch (error) {
+        return null;
+    }
+
+    if (storedValue === null) {
+        return null;
+    }
+
+    try {
+        const version = localStorage.getItem(PANEL_OPACITY_VERSION_KEY);
+        if (version !== PANEL_OPACITY_VERSION) {
+            const migrated = 100 - storedValue;
+            localStorage.setItem(PANEL_OPACITY_KEY, String(migrated));
+            localStorage.setItem(PANEL_OPACITY_VERSION_KEY, PANEL_OPACITY_VERSION);
+            return migrated;
+        }
+    } catch (error) {
+        return storedValue;
+    }
+
+    return storedValue;
+}
+
 function applyPanelOpacity(value) {
-    const percent = clamp(Math.round(value), 30, 90);
-    const alpha = (percent / 100).toFixed(2);
+    const percent = clamp(Math.round(value), PANEL_OPACITY_MIN, PANEL_OPACITY_MAX);
+    const alpha = ((100 - percent) / 100).toFixed(2);
     document.documentElement.style.setProperty('--card-bg-alpha', alpha);
     if (panelOpacityValue) {
         panelOpacityValue.textContent = `${percent}%`;
@@ -55,6 +90,7 @@ function applyPanelOpacity(value) {
     }
     try {
         localStorage.setItem(PANEL_OPACITY_KEY, String(percent));
+        localStorage.setItem(PANEL_OPACITY_VERSION_KEY, PANEL_OPACITY_VERSION);
     } catch (error) {
         console.warn('Falha ao salvar transparência:', error);
     }
@@ -221,13 +257,9 @@ fetchInsights();
 // Panel opacity control
 if (panelOpacityInput) {
     let initialValue = 70;
-    try {
-        const stored = Number(localStorage.getItem(PANEL_OPACITY_KEY));
-        if (Number.isFinite(stored)) {
-            initialValue = stored;
-        }
-    } catch (error) {
-        console.warn('Falha ao ler transparência:', error);
+    const stored = loadPanelTransparency();
+    if (Number.isFinite(stored)) {
+        initialValue = stored;
     }
     applyPanelOpacity(initialValue);
     panelOpacityInput.addEventListener('input', (event) => {

@@ -1,14 +1,26 @@
 (() => {
     const PANEL_OPACITY_KEY = 'panelOpacity';
+    const PANEL_OPACITY_VERSION_KEY = 'panelOpacityVersion';
+    const PANEL_OPACITY_VERSION = '2';
+    const PANEL_OPACITY_MIN = 10;
+    const PANEL_OPACITY_MAX = 95;
 
     const applyStoredOpacity = () => {
         try {
-            const stored = Number(localStorage.getItem(PANEL_OPACITY_KEY));
+            const raw = localStorage.getItem(PANEL_OPACITY_KEY);
+            let stored = Number(raw);
             if (!Number.isFinite(stored)) {
                 return;
             }
-            const clamped = Math.min(Math.max(Math.round(stored), 30), 90);
-            document.documentElement.style.setProperty('--card-bg-alpha', (clamped / 100).toFixed(2));
+            const version = localStorage.getItem(PANEL_OPACITY_VERSION_KEY);
+            if (version !== PANEL_OPACITY_VERSION) {
+                stored = 100 - stored;
+                localStorage.setItem(PANEL_OPACITY_KEY, String(stored));
+                localStorage.setItem(PANEL_OPACITY_VERSION_KEY, PANEL_OPACITY_VERSION);
+            }
+            const clamped = Math.min(Math.max(Math.round(stored), PANEL_OPACITY_MIN), PANEL_OPACITY_MAX);
+            const alpha = ((100 - clamped) / 100).toFixed(2);
+            document.documentElement.style.setProperty('--card-bg-alpha', alpha);
         } catch (error) {
             console.warn('Falha ao aplicar transparência:', error);
         }
