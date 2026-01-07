@@ -212,17 +212,17 @@
             <!-- Recent Readings Table -->
             <div class="card">
                 <div class="card-header">
-                    <h2>Últimas Leituras</h2>
+                    <h2>Médias por Hora (últimas 10 horas)</h2>
                 </div>
                 <div class="card-body table-container">
                     <table id="readings-table">
                         <thead>
                             <tr>
                                 <th>Hora</th>
-                                <th>Potência</th>
-                                <th>Energia</th>
-                                <th>Temp</th>
-                                <th>Tensão</th>
+                                <th>Potência média</th>
+                                <th>Energia média</th>
+                                <th>Temp. média</th>
+                                <th>Tensão média</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -395,7 +395,7 @@
                 lastReadings = readings;
 
                 updateCharts(readings);
-                updateTable(readings.slice(0, 50));
+                updateTable(readings);
                 updateTopPeaks(readings);
 
                 if (currentPeriod === "day") {
@@ -530,7 +530,7 @@
             energyChart.update();
         }
 
-        // Update table with latest readings
+        // Update table with hourly averages (last 10 hours)
         function updateTable(data) {
             const tbody = document.getElementById("readings-tbody");
 
@@ -539,34 +539,79 @@
                 return;
             }
 
-            // Keep only one reading per minute (latest occurrence per minute)
-            const seenMinutes = new Set();
-            const perMinute = [];
-            data.forEach((d) => {
-                const ts = d.timestamp ? new Date(d.timestamp) : null;
-                if (!ts || isNaN(ts)) return;
-                const minuteKey = ts.toISOString().slice(0, 16); // yyyy-mm-ddThh:mm
-                if (seenMinutes.has(minuteKey)) {
+            const parsed = data
+                .map((d) => ({
+                    ...d,
+                    ts: d.timestamp ? new Date(d.timestamp) : null,
+                }))
+                .filter((d) => d.ts && !isNaN(d.ts))
+                .sort((a, b) => a.ts - b.ts);
+
+            if (parsed.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6'>Nenhuma leitura disponivel</td></tr>";
+                return;
+            }
+
+            const lastTs = parsed[parsed.length - 1].ts;
+            const windowStart = new Date(lastTs.getTime() - 10 * 60 * 60 * 1000);
+
+            const buckets = new Map();
+            parsed.forEach((d) => {
+                if (d.ts < windowStart) {
                     return;
                 }
-                seenMinutes.add(minuteKey);
-                perMinute.push(d);
+                const hourStart = new Date(
+                    d.ts.getFullYear(),
+                    d.ts.getMonth(),
+                    d.ts.getDate(),
+                    d.ts.getHours()
+                );
+                const key = hourStart.getTime();
+                if (!buckets.has(key)) {
+                    buckets.set(key, {
+                        hourStart,
+                        count: 0,
+                        sumPower: 0,
+                        sumEnergy: 0,
+                        sumTemp: 0,
+                        sumVoltage: 0,
+                        statusCounts: {},
+                    });
+                }
+                const bucket = buckets.get(key);
+                bucket.count += 1;
+                bucket.sumPower += toNumber(d.total_active_power_w);
+                bucket.sumEnergy += toNumber(d.daily_energy_kwh);
+                bucket.sumTemp += toNumber(d.temperature_c);
+                bucket.sumVoltage += toNumber(d.grid_voltage_v);
+                const status = d.running_state_string || "Desconhecido";
+                bucket.statusCounts[status] = (bucket.statusCounts[status] || 0) + 1;
             });
 
-            const rows = perMinute.slice(0, 30).map((d) => {
-                const power = toNumber(d.total_active_power_w);
-                const energy = toNumber(d.daily_energy_kwh);
-                const temperature = toNumber(d.temperature_c);
-                const voltage = toNumber(d.grid_voltage_v);
-                const status = d.running_state_string || "Desconhecido";
+            const sortedBuckets = Array.from(buckets.values()).sort(
+                (a, b) => b.hourStart - a.hourStart
+            );
+
+            if (sortedBuckets.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6'>Nenhuma leitura disponivel</td></tr>";
+                return;
+            }
+
+            const rows = sortedBuckets.map((bucket) => {
+                const avgPower = bucket.sumPower / bucket.count;
+                const avgEnergy = bucket.sumEnergy / bucket.count;
+                const avgTemp = bucket.sumTemp / bucket.count;
+                const avgVoltage = bucket.sumVoltage / bucket.count;
+                const status = Object.entries(bucket.statusCounts)
+                    .sort((a, b) => b[1] - a[1])[0]?.[0] || "Desconhecido";
 
                 return `
                     <tr>
-                        <td>${formatTime(d.timestamp)}</td>
-                        <td>${power.toFixed(0)} W</td>
-                        <td>${energy.toFixed(2)} kWh</td>
-                        <td>${temperature.toFixed(1)} °C</td>
-                        <td>${voltage.toFixed(1)} V</td>
+                        <td>${bucket.hourStart.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
+                        <td>${avgPower.toFixed(0)} W</td>
+                        <td>${avgEnergy.toFixed(2)} kWh</td>
+                        <td>${avgTemp.toFixed(1)} °C</td>
+                        <td>${avgVoltage.toFixed(1)} V</td>
                         <td>${status}</td>
                     </tr>
                 `;
