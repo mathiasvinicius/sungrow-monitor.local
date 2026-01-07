@@ -97,6 +97,7 @@ func (s *Server) setupRoutes() {
 	// API routes
 	api := s.router.Group("/api/v1")
 	{
+		api.GET("/background/wallpaper", s.backgroundWallpaperHandler)
 		api.GET("/bing-wallpaper", s.bingWallpaperHandler)
 		api.GET("/status", s.statusHandler)
 		api.GET("/readings", s.readingsHandler)
@@ -112,6 +113,8 @@ func (s *Server) setupRoutes() {
 		api.POST("/config/inverter/test", s.testInverterConfigHandler)
 		api.GET("/config/weather", s.getWeatherConfigHandler)
 		api.PUT("/config/weather", s.updateWeatherConfigHandler)
+		api.GET("/config/background", s.getBackgroundConfigHandler)
+		api.PUT("/config/background", s.updateBackgroundConfigHandler)
 	}
 }
 

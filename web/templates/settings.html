@@ -177,6 +177,49 @@
                 </div>
             </div>
 
+            <!-- Card de configurações do fundo -->
+            <div class="card settings-card">
+                <div class="card-header">
+                    <h2>Fundo do Painel</h2>
+                </div>
+                <div class="card-body">
+                    <form id="background-form">
+                        <div class="form-group">
+                            <label for="unsplash-access-key">Unsplash Access Key</label>
+                            <input type="password" id="unsplash-access-key" placeholder="opcional">
+                            <small class="form-help">Se vazio, o fundo usa Bing automaticamente.</small>
+                        </div>
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="unsplash-clear-key">
+                            <label for="unsplash-clear-key">Remover chave atual</label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="background-save-btn" class="btn">
+                                <span id="background-save-text">Salvar Fundo</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card status-card">
+                <div class="card-header">
+                    <h2>Fundo Atual</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-values">
+                        <div class="status-item">
+                            <span class="label">Provedor</span>
+                            <span class="value" id="current-bg-provider">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Chave Unsplash</span>
+                            <span class="value" id="current-unsplash-key">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card status-card">
                 <div class="card-header">
                     <h2>Clima Atual (Config)</h2>

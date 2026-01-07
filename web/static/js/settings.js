@@ -18,6 +18,8 @@ const currentTimeout = document.getElementById('current-timeout');
 const currentWeatherEnabled = document.getElementById('current-weather-enabled');
 const currentWeatherProvider = document.getElementById('current-weather-provider');
 const currentWeatherLocation = document.getElementById('current-weather-location');
+const currentBgProvider = document.getElementById('current-bg-provider');
+const currentUnsplashKey = document.getElementById('current-unsplash-key');
 
 // Form inputs
 const ipInput = document.getElementById('inverter-ip');
@@ -32,6 +34,10 @@ const weatherCountry = document.getElementById('weather-country');
 const weatherLatitude = document.getElementById('weather-latitude');
 const weatherLongitude = document.getElementById('weather-longitude');
 const weatherUnits = document.getElementById('weather-units');
+const backgroundForm = document.getElementById('background-form');
+const backgroundSaveBtn = document.getElementById('background-save-btn');
+const unsplashAccessKey = document.getElementById('unsplash-access-key');
+const unsplashClearKey = document.getElementById('unsplash-clear-key');
 
 // Load current configuration on page load
 async function loadCurrentConfig() {
@@ -94,6 +100,40 @@ function updateWeatherConfigDisplay(config) {
     currentWeatherProvider.textContent = formatWeatherProvider(config.provider) || '--';
     const location = formatWeatherLocation(config);
     currentWeatherLocation.textContent = location || '--';
+}
+
+async function loadBackgroundConfig() {
+    try {
+        const response = await fetch(`${API_BASE}/config/background`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const config = await response.json();
+
+        updateBackgroundConfigDisplay(config);
+    } catch (error) {
+        console.error('Failed to load background config:', error);
+        showAlert('error', 'Erro ao carregar configuração do fundo');
+    }
+}
+
+function updateBackgroundConfigDisplay(config) {
+    if (!config) {
+        currentBgProvider.textContent = '--';
+        currentUnsplashKey.textContent = '--';
+        return;
+    }
+
+    const provider = (config.provider || '').toLowerCase();
+    if (provider === 'unsplash') {
+        currentBgProvider.textContent = 'Unsplash';
+    } else if (provider === 'bing') {
+        currentBgProvider.textContent = 'Bing';
+    } else {
+        currentBgProvider.textContent = provider || '--';
+    }
+
+    currentUnsplashKey.textContent = config.has_unsplash_key ? 'Configurada' : 'Não configurada';
 }
 
 function normalizeWeatherProvider(value) {
@@ -233,6 +273,46 @@ weatherForm.addEventListener('submit', async (e) => {
     }
 });
 
+backgroundForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        clear_unsplash_key: !!unsplashClearKey.checked
+    };
+
+    const keyValue = (unsplashAccessKey.value || '').trim();
+    if (keyValue) {
+        payload.unsplash_access_key = keyValue;
+    }
+
+    setButtonLoading(backgroundSaveBtn, true, 'Salvando...');
+
+    try {
+        const response = await fetch(`${API_BASE}/config/background`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showAlert('success', 'Configuração de fundo salva com sucesso!');
+            updateBackgroundConfigDisplay(result);
+            unsplashAccessKey.value = '';
+            unsplashClearKey.checked = false;
+            setTimeout(() => loadBackgroundConfig(), 1000);
+        } else {
+            showAlert('error', `Erro ao salvar fundo: ${result.error || 'Erro desconhecido'}`);
+        }
+    } catch (error) {
+        console.error('Background save failed:', error);
+        showAlert('error', 'Erro ao salvar fundo: ' + error.message);
+    } finally {
+        setButtonLoading(backgroundSaveBtn, false, 'Salvar Fundo');
+    }
+});
+
 // Show alert message
 function showAlert(type, message) {
     const alert = document.createElement('div');
@@ -274,6 +354,7 @@ function formatWeatherLocation(config) {
 // Initialize on page load
 loadCurrentConfig();
 loadWeatherConfig();
+loadBackgroundConfig();
 
 // Update status indicator
 async function updateStatus() {
