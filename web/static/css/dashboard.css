@@ -1,7 +1,7 @@
 :root {
     /* Base colors - updated to match docker-web-control */
     --bg-color: #0c1823;
-    --card-bg: rgba(13, 31, 44, 0.85);
+    --card-bg: rgba(13, 31, 44, 0.7);
     --card-border: rgba(34, 211, 238, 0.12);
     --text-primary: #e8f5ff;
     --text-secondary: #a8b8d8;
