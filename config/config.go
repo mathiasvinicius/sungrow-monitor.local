@@ -12,6 +12,7 @@ type Config struct {
 	API       APIConfig       `mapstructure:"api"`
 	MQTT      MQTTConfig      `mapstructure:"mqtt"`
 	Database  DatabaseConfig  `mapstructure:"database"`
+	Weather   WeatherConfig   `mapstructure:"weather"`
 }
 
 type InverterConfig struct {
@@ -45,6 +46,17 @@ type DatabaseConfig struct {
 	Path string `mapstructure:"path"`
 }
 
+type WeatherConfig struct {
+	Enabled   bool    `mapstructure:"enabled"`
+	Provider  string  `mapstructure:"provider"`
+	APIKey    string  `mapstructure:"api_key"`
+	City      string  `mapstructure:"city"`
+	Country   string  `mapstructure:"country"`
+	Latitude  float64 `mapstructure:"latitude"`
+	Longitude float64 `mapstructure:"longitude"`
+	Units     string  `mapstructure:"units"`
+}
+
 func Load(configPath string) (*Config, error) {
 	if configPath != "" {
 		viper.SetConfigFile(configPath)
@@ -62,7 +74,7 @@ func Load(configPath string) (*Config, error) {
 	viper.SetDefault("inverter.timeout", "10s")
 	viper.SetDefault("collector.interval", "30s")
 	viper.SetDefault("collector.enabled", true)
-	viper.SetDefault("api.port", 8080)
+	viper.SetDefault("api.port", 8045)
 	viper.SetDefault("api.enabled", true)
 	viper.SetDefault("api.web_path", "./web")
 	viper.SetDefault("mqtt.enabled", true)
@@ -70,6 +82,14 @@ func Load(configPath string) (*Config, error) {
 	viper.SetDefault("mqtt.topic_prefix", "sungrow")
 	viper.SetDefault("mqtt.client_id", "sungrow-monitor")
 	viper.SetDefault("database.path", "./sungrow.db")
+	viper.SetDefault("weather.enabled", false)
+	viper.SetDefault("weather.provider", "openweather")
+	viper.SetDefault("weather.api_key", "")
+	viper.SetDefault("weather.city", "")
+	viper.SetDefault("weather.country", "")
+	viper.SetDefault("weather.latitude", 0)
+	viper.SetDefault("weather.longitude", 0)
+	viper.SetDefault("weather.units", "metric")
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {

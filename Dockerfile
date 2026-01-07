@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /bin/bash appuser
 
 # Create directories
+RUN mkdir -p /data && touch /data/sungrow.db
 RUN mkdir -p /data /etc/sungrow-monitor /app/web
 
 # Copy binary from builder
@@ -45,6 +46,7 @@ COPY config.yaml /etc/sungrow-monitor/config.yaml
 COPY web/ /app/web/
 
 # Set permissions
+RUN chown -R appuser:appuser /etc/sungrow-monitor
 RUN chown -R appuser:appuser /data /app
 
 # Switch to non-root user
@@ -52,7 +54,7 @@ USER appuser
 
 WORKDIR /app
 
-EXPOSE 8080
+EXPOSE 8045
 
 ENTRYPOINT ["sungrow-monitor"]
 CMD ["serve", "--config", "/etc/sungrow-monitor/config.yaml"]

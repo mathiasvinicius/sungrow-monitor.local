@@ -16,6 +16,11 @@ type Database struct {
 	db *gorm.DB
 }
 
+type powerSample struct {
+	Timestamp        time.Time
+	TotalActivePower uint32
+}
+
 func NewDatabase(path string) (*Database, error) {
 	// Ensure directory exists
 	dir := filepath.Dir(path)
@@ -158,6 +163,47 @@ func (d *Database) GetDailyStats(date time.Time) (*DailyStats, error) {
 		Count(&stats.ReadingsCount)
 
 	return &stats, nil
+}
+
+func (d *Database) GetAveragePowerForTimeOfDay(now time.Time, days int, bucketMinutes int) (float64, int, error) {
+	if days <= 0 {
+		days = 30
+	}
+	if bucketMinutes <= 0 {
+		bucketMinutes = 30
+	}
+
+	start := now.AddDate(0, 0, -days)
+
+	var samples []powerSample
+	result := d.db.Model(&InverterReading{}).
+		Select("timestamp, total_active_power").
+		Where("timestamp >= ? AND timestamp <= ?", start, now).
+		Find(&samples)
+	if result.Error != nil {
+		return 0, 0, result.Error
+	}
+
+	localNow := now.In(time.Local)
+	targetMinutes := localNow.Hour()*60 + localNow.Minute()
+	bucketStart := (targetMinutes / bucketMinutes) * bucketMinutes
+	bucketEnd := bucketStart + bucketMinutes
+
+	var total float64
+	count := 0
+	for _, sample := range samples {
+		ts := sample.Timestamp.In(time.Local)
+		minutes := ts.Hour()*60 + ts.Minute()
+		if minutes >= bucketStart && minutes < bucketEnd {
+			total += float64(sample.TotalActivePower)
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0, 0, nil
+	}
+	return total / float64(count), count, nil
 }
 
 func (d *Database) CleanOldReadings(olderThan time.Duration) error {

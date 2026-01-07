@@ -1,16 +1,23 @@
 :root {
-    --bg-color: #1a1a2e;
-    --card-bg: #16213e;
-    --card-border: #0f3460;
-    --text-primary: #eaeaea;
-    --text-secondary: #a0a0a0;
-    --accent-color: #e94560;
-    --success-color: #00d26a;
-    --warning-color: #ffc107;
-    --power-color: #00d26a;
-    --energy-color: #4dc3ff;
-    --mppt-color: #ffa726;
-    --grid-color: #ab47bc;
+    /* Base colors - updated to match docker-web-control */
+    --bg-color: #0c1823;
+    --card-bg: rgba(13, 31, 44, 0.85);
+    --card-border: rgba(34, 211, 238, 0.12);
+    --text-primary: #e8f5ff;
+    --text-secondary: #a8b8d8;
+
+    /* Accent colors - introduce cyan primary */
+    --accent-primary: #22d3ee;
+    --accent-secondary: #14b8a6;
+    --accent-color: #ff7f6e;
+
+    /* Functional colors - keep existing */
+    --success-color: #2ee6a8;
+    --warning-color: #ffce3a;
+    --power-color: #2ee6a8;
+    --energy-color: #4fc3ff;
+    --mppt-color: #ffb347;
+    --grid-color: #c084fc;
 }
 
 * {
@@ -20,8 +27,10 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg-color);
+    font-family: 'Inter', -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 30%),
+                radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.08), transparent 32%),
+                #0c1823;
     color: var(--text-primary);
     min-height: 100vh;
 }
@@ -34,16 +43,49 @@ body {
 
 header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--card-border);
 }
 
+header .header-top {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 header h1 {
     font-size: 1.8rem;
     font-weight: 600;
+}
+
+.nav-links {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.nav-links a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    padding: 10px 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background: rgba(34, 211, 238, 0.15);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
 }
 
 .status-indicator {
@@ -88,6 +130,16 @@ main {
     border: 1px solid var(--card-border);
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.2);
+    border-color: rgba(34, 211, 238, 0.25);
 }
 
 .card-header {
@@ -242,9 +294,17 @@ footer {
 /* Responsive */
 @media (max-width: 768px) {
     header {
-        flex-direction: column;
         gap: 15px;
         text-align: center;
+    }
+
+    header .header-top {
+        flex-direction: column;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .big-value span:first-child {
@@ -268,4 +328,195 @@ footer {
 /* Error State */
 .error {
     color: var(--accent-color);
+}
+
+/* Button Styles - from docker-web-control */
+button, .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 0.45rem 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: var(--accent-primary);
+    color: #0a1a24;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+button:hover, .btn:hover {
+    background-color: var(--accent-secondary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+}
+
+button.secondary, .btn-secondary {
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.4);
+    color: var(--text-primary);
+}
+
+button.secondary:hover, .btn-secondary:hover {
+    background: rgba(34, 211, 238, 0.2);
+    border-color: rgba(34, 211, 238, 0.5);
+}
+
+button.ghost, .btn-ghost {
+    background: rgba(34, 211, 238, 0.12);
+    color: var(--text-primary);
+    border: 1px solid transparent;
+}
+
+button.ghost:hover, .btn-ghost:hover {
+    background: rgba(34, 211, 238, 0.2);
+    border-color: rgba(34, 211, 238, 0.3);
+}
+
+button.danger, .btn-danger {
+    background: rgba(248, 113, 113, 0.16);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #fecaca;
+}
+
+button.danger:hover, .btn-danger:hover {
+    background: rgba(248, 113, 113, 0.24);
+    transform: translateY(-1px);
+}
+
+button:disabled, .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Form Elements - from docker-web-control */
+input, select, textarea {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+    color: var(--text-primary);
+    font: inherit;
+    transition: all 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* Form Groups */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-help {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-row input[type="checkbox"] {
+    width: auto;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #5eead4;
+}
+
+.alert-error {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.3);
+    color: #fecaca;
+}
+
+.alert-warning {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.3);
+    color: #fde68a;
+}
+
+.alert-info {
+    background: rgba(34, 211, 238, 0.12);
+    border-color: rgba(34, 211, 238, 0.3);
+    color: #a5f3fc;
+}
+
+/* Settings Page Specific Styles */
+.settings-card {
+    border-left: 4px solid var(--accent-primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--card-border);
+}
+
+#alert-container {
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
 }

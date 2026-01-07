@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sungrow Monitor - Configurações</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>Sungrow SG5.0RS-S</h1>
+                <div class="status-indicator">
+                    <span id="status-dot" class="status-dot offline"></span>
+                    <span id="status-text">Offline</span>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="/">Dashboard</a>
+                <a href="/history">Histórico</a>
+                <a href="/settings" class="active">Configurações</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Container para alerts -->
+            <div id="alert-container"></div>
+
+            <!-- Card de configurações do inversor -->
+            <div class="card settings-card">
+                <div class="card-header">
+                    <h2>Configurações do Inversor</h2>
+                </div>
+                <div class="card-body">
+                    <form id="settings-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="inverter-ip">Endereço IP</label>
+                                <input type="text" id="inverter-ip" name="ip"
+                                       placeholder="192.168.1.100" required>
+                                <small class="form-help">Formato: 192.168.1.100</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="inverter-port">Porta Modbus</label>
+                                <input type="number" id="inverter-port" name="port"
+                                       placeholder="502" min="1" max="65535" required>
+                                <small class="form-help">Padrão: 502</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="slave-id">Slave ID</label>
+                                <input type="number" id="slave-id" name="slave_id"
+                                       placeholder="1" min="1" max="255" required>
+                                <small class="form-help">Padrão: 1</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="timeout">Timeout (segundos)</label>
+                                <input type="number" id="timeout" name="timeout"
+                                       placeholder="10" min="1" max="60" required>
+                                <small class="form-help">Padrão: 10s</small>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="test-btn" class="btn-secondary">
+                                <span id="test-btn-text">Testar Conexão</span>
+                            </button>
+                            <button type="submit" id="save-btn" class="btn">
+                                <span id="save-btn-text">Salvar e Aplicar</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Card de configuração atual -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <h2>Configuração Atual</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-values">
+                        <div class="status-item">
+                            <span class="label">Endereço IP</span>
+                            <span class="value" id="current-ip">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Porta</span>
+                            <span class="value" id="current-port">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Slave ID</span>
+                            <span class="value" id="current-slave-id">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Timeout</span>
+                            <span class="value" id="current-timeout">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de configurações do clima -->
+            <div class="card settings-card">
+                <div class="card-header">
+                    <h2>Configurações de Clima</h2>
+                </div>
+                <div class="card-body">
+                    <form id="weather-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weather-enabled">Ativar</label>
+                                <div class="checkbox-row">
+                                    <input type="checkbox" id="weather-enabled">
+                                    <span>Habilitar integração</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="weather-provider">Provedor</label>
+                                <select id="weather-provider">
+                                    <option value="openweather">OpenWeather</option>
+                                    <option value="openmeteo">Open-Meteo (sem cadastro)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weather-api-key">API Key</label>
+                                <input type="text" id="weather-api-key" placeholder="sua-chave-aqui">
+                                <small class="form-help">Obrigatória no OpenWeather. No Open-Meteo não é necessária.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="weather-units">Unidades</label>
+                                <select id="weather-units">
+                                    <option value="metric">Métrico (°C)</option>
+                                    <option value="imperial">Imperial (°F)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weather-city">Cidade</label>
+                                <input type="text" id="weather-city" placeholder="Curitiba">
+                            </div>
+                            <div class="form-group">
+                                <label for="weather-country">País</label>
+                                <input type="text" id="weather-country" placeholder="BR">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weather-latitude">Latitude</label>
+                                <input type="number" id="weather-latitude" step="0.000001" placeholder="-25.4284">
+                            </div>
+                            <div class="form-group">
+                                <label for="weather-longitude">Longitude</label>
+                                <input type="number" id="weather-longitude" step="0.000001" placeholder="-49.2733">
+                            </div>
+                        </div>
+
+                        <small class="form-help">Use cidade/país ou latitude/longitude.</small>
+
+                        <div class="form-actions">
+                            <button type="submit" id="weather-save-btn" class="btn">
+                                <span id="weather-save-text">Salvar Clima</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card status-card">
+                <div class="card-header">
+                    <h2>Clima Atual (Config)</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-values">
+                        <div class="status-item">
+                            <span class="label">Habilitado</span>
+                            <span class="value" id="current-weather-enabled">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Provedor</span>
+                            <span class="value" id="current-weather-provider">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Localidade</span>
+                            <span class="value" id="current-weather-location">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Sungrow Monitor v1.0</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/settings.js"></script>
+</body>
+</html>

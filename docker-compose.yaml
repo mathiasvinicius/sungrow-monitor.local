@@ -1,7 +1,7 @@
 services:
   mosquitto:
     image: eclipse-mosquitto:2
-    container_name: sungrow-mosquitto
+    container_name: sungrow-coletor
     ports:
       - "1883:1883"
       - "9001:9001"
@@ -17,9 +17,9 @@ services:
     build: .
     container_name: sungrow-monitor
     ports:
-      - "8080:8080"
+      - "8045:8045"
     volumes:
-      - ./config.yaml:/etc/sungrow-monitor/config.yaml:ro
+      - ./config.yaml:/etc/sungrow-monitor/config.yaml
       - sungrow-data:/data
     depends_on:
       - mosquitto

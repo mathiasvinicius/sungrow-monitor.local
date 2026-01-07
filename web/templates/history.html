@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sungrow Monitor - Historico</title>
+    <title>Sungrow Monitor - Histórico</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -19,22 +19,53 @@
             font-size: 1rem;
             margin-bottom: 15px;
         }
-        .nav-links {
+        .filters {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
         }
-        .nav-links a {
-            color: var(--energy-color);
-            text-decoration: none;
-            padding: 8px 16px;
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 160px;
+        }
+        .filter-group label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .filter-group select,
+        .filter-group input {
+            background: rgba(255,255,255,0.05);
             border: 1px solid var(--card-border);
             border-radius: 8px;
-            transition: all 0.3s;
+            padding: 10px 12px;
+            color: var(--text-primary);
         }
-        .nav-links a:hover, .nav-links a.active {
-            background: var(--card-bg);
-            border-color: var(--energy-color);
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .filter-actions button {
+            background: var(--energy-color);
+            color: #0a0d16;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .filter-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
         }
         .stats-grid {
             display: grid;
@@ -78,6 +109,27 @@
         td {
             color: var(--text-primary);
         }
+        .top-peaks-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 20px;
+        }
+        .top-peaks-card h2 {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        .top-peaks-card ol {
+            padding-left: 20px;
+            display: grid;
+            gap: 6px;
+            color: var(--text-primary);
+        }
+        .top-peaks-card li span {
+            color: var(--energy-color);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -86,57 +138,90 @@
             <h1>Sungrow SG5.0RS-S</h1>
             <div class="nav-links">
                 <a href="/">Dashboard</a>
-                <a href="/history" class="active">Historico</a>
+                <a href="/history" class="active">Histórico</a>
+                <a href="/settings">Configurações</a>
             </div>
         </header>
 
         <main>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="period-select">Período</label>
+                    <select id="period-select">
+                        <option value="day">Dia</option>
+                        <option value="month">Mês</option>
+                        <option value="year">Ano</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="period-value">Selecione</label>
+                    <input id="period-value" type="date">
+                </div>
+                <div class="filter-actions">
+                    <button id="apply-filter">Aplicar</button>
+                </div>
+            </div>
+
             <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="label">Energia Hoje</div>
+                    <div class="label" id="energy-label">Energia Hoje</div>
                     <div class="value" id="daily-energy">-- kWh</div>
                 </div>
                 <div class="stat-card">
-                    <div class="label">Pico de Potencia</div>
+                    <div class="label">Pico Diário</div>
+                    <div class="value" id="daily-peak">-- W</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Pico de Potência</div>
                     <div class="value" id="max-power">-- W</div>
+                </div>
+                <div class="stat-card" id="max-daily-energy-card">
+                    <div class="label">Maior Energia Dia</div>
+                    <div class="value" id="max-daily-energy">-- kWh</div>
                 </div>
                 <div class="stat-card">
                     <div class="label">Leituras Hoje</div>
                     <div class="value" id="readings-count">--</div>
                 </div>
                 <div class="stat-card">
-                    <div class="label">Temp. Media</div>
+                    <div class="label">Temp. Média</div>
                     <div class="value" id="avg-temp">-- °C</div>
                 </div>
             </div>
 
             <!-- Power Chart -->
             <div class="chart-container">
-                <h2>Potencia (ultimas 2 horas)</h2>
+                <h2>Potência (últimas 2 horas)</h2>
                 <canvas id="powerChart"></canvas>
             </div>
 
             <!-- Energy Chart -->
             <div class="chart-container">
-                <h2>Energia Diaria</h2>
+                <h2>Energia Diária</h2>
                 <canvas id="energyChart"></canvas>
+            </div>
+
+            <!-- Top 10 picos do mês -->
+            <div class="top-peaks-card" id="top-peaks-card" style="display:none;">
+                <h2>Top 10 Picos (Mês)</h2>
+                <ol id="top-peaks-list"></ol>
             </div>
 
             <!-- Recent Readings Table -->
             <div class="card">
                 <div class="card-header">
-                    <h2>Ultimas Leituras</h2>
+                    <h2>Últimas Leituras</h2>
                 </div>
                 <div class="card-body table-container">
                     <table id="readings-table">
                         <thead>
                             <tr>
                                 <th>Hora</th>
-                                <th>Potencia</th>
+                                <th>Potência</th>
                                 <th>Energia</th>
                                 <th>Temp</th>
-                                <th>Tensao</th>
+                                <th>Tensão</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -153,8 +238,29 @@
     </div>
 
     <script>
-        const API_BASE = '/api/v1';
+        const API_BASE = "/api/v1";
         let powerChart, energyChart;
+        let lastReadings = [];
+        let currentPeriod = "day";
+
+        const toNumber = (value, fallback = 0) => {
+            const num = Number(value);
+            return Number.isFinite(num) ? num : fallback;
+        };
+
+        const formatTime = (value) => {
+            const date = value ? new Date(value) : null;
+            return date && !isNaN(date) ? date.toLocaleTimeString("pt-BR") : "--:--";
+        };
+
+        const periodSelect = document.getElementById("period-select");
+        const periodValue = document.getElementById("period-value");
+        const applyFilterBtn = document.getElementById("apply-filter");
+        const energyLabel = document.getElementById("energy-label");
+        const dailyPeakEl = document.getElementById("daily-peak");
+        const topPeaksCard = document.getElementById("top-peaks-card");
+        const topPeaksList = document.getElementById("top-peaks-list");
+        const maxDailyEnergyEl = document.getElementById("max-daily-energy");
 
         // Initialize charts
         function initCharts() {
@@ -167,25 +273,25 @@
                 },
                 scales: {
                     x: {
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#a0a0a0' }
+                        grid: { color: "rgba(255,255,255,0.1)" },
+                        ticks: { color: "#a0a0a0" }
                     },
                     y: {
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#a0a0a0' }
+                        grid: { color: "rgba(255,255,255,0.1)" },
+                        ticks: { color: "#a0a0a0" }
                     }
                 }
             };
 
-            powerChart = new Chart(document.getElementById('powerChart'), {
-                type: 'line',
+            powerChart = new Chart(document.getElementById("powerChart"), {
+                type: "line",
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Potencia (W)',
+                        label: "Potência (W)",
                         data: [],
-                        borderColor: '#00d26a',
-                        backgroundColor: 'rgba(0, 210, 106, 0.1)',
+                        borderColor: "#2ee6a8",
+                        backgroundColor: "rgba(46, 230, 168, 0.12)",
                         fill: true,
                         tension: 0.3
                     }]
@@ -193,103 +299,354 @@
                 options: chartOptions
             });
 
-            energyChart = new Chart(document.getElementById('energyChart'), {
-                type: 'line',
+            energyChart = new Chart(document.getElementById("energyChart"), {
+                type: "line",
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Energia (kWh)',
+                        label: "Energia (kWh)",
                         data: [],
-                        borderColor: '#4dc3ff',
-                        backgroundColor: 'rgba(77, 195, 255, 0.1)',
+                        borderColor: "#4fc3ff",
+                        backgroundColor: "rgba(79, 195, 255, 0.14)",
                         fill: true,
                         tension: 0.3
                     }]
                 },
                 options: chartOptions
             });
+        }
+
+        function updateEnergyLabel() {
+            if (!energyLabel) return;
+            if (currentPeriod === "day") {
+                energyLabel.textContent = "Energia do Dia";
+            } else if (currentPeriod === "month") {
+                energyLabel.textContent = "Energia no Mês";
+            } else {
+                energyLabel.textContent = "Energia no Ano";
+            }
+        }
+
+        function setPeriodInputType() {
+            const now = new Date();
+            if (currentPeriod === "day") {
+                periodValue.type = "date";
+                if (!periodValue.value) {
+                    periodValue.value = now.toISOString().slice(0, 10);
+                }
+            } else if (currentPeriod === "month") {
+                periodValue.type = "month";
+                if (!periodValue.value) {
+                    periodValue.value = now.toISOString().slice(0, 7);
+                }
+            } else {
+                periodValue.type = "number";
+                periodValue.min = "2000";
+                periodValue.max = String(now.getFullYear());
+                if (!periodValue.value) {
+                    periodValue.value = String(now.getFullYear());
+                }
+            }
+        }
+
+        function getSelectedRange() {
+            try {
+                if (currentPeriod === "day") {
+                    const val = periodValue.value;
+                    if (!val) return null;
+                    const from = new Date(`${val}T00:00:00`);
+                    const to = new Date(from);
+                    to.setDate(from.getDate() + 1);
+                    return { from, to, dateStr: val };
+                }
+                if (currentPeriod === "month") {
+                    const val = periodValue.value;
+                    if (!val) return null;
+                    const from = new Date(`${val}-01T00:00:00`);
+                    const to = new Date(from);
+                    to.setMonth(from.getMonth() + 1);
+                    return { from, to, dateStr: val };
+                }
+                const year = Number(periodValue.value);
+                if (!Number.isFinite(year)) return null;
+                const from = new Date(`${year}-01-01T00:00:00`);
+                const to = new Date(`${year + 1}-01-01T00:00:00`);
+                return { from, to, dateStr: String(year) };
+            } catch (e) {
+                return null;
+            }
         }
 
         // Fetch readings
-        async function fetchReadings() {
+        async function fetchReadings(range) {
             try {
-                const response = await fetch(`${API_BASE}/readings?limit=200`);
+                const params = new URLSearchParams();
+                if (range && range.from && range.to) {
+                    params.set("from", range.from.toISOString());
+                    params.set("to", range.to.toISOString());
+                } else {
+                    params.set("limit", "200");
+                }
+
+                const response = await fetch(`${API_BASE}/readings?${params.toString()}`);
                 const data = await response.json();
-                updateCharts(data);
-                updateTable(data.slice(0, 20));
+                const readings = Array.isArray(data) ? data : [];
+                lastReadings = readings;
+
+                updateCharts(readings);
+                updateTable(readings.slice(0, 50));
+                updateTopPeaks(readings);
+
+                if (currentPeriod === "day") {
+                    fetchDailyStats(range);
+                } else {
+                    updateStatsFromReadings(readings);
+                }
             } catch (error) {
-                console.error('Error fetching readings:', error);
+                console.error("Error fetching readings:", error);
             }
         }
 
-        // Fetch daily stats
-        async function fetchStats() {
+        // Fetch daily stats (API)
+        async function fetchDailyStats(range) {
+            if (!range || !range.dateStr) {
+                updateStatsFromReadings(lastReadings);
+                return;
+            }
             try {
-                const response = await fetch(`${API_BASE}/stats/daily`);
+                const response = await fetch(`${API_BASE}/stats/daily?date=${range.dateStr}`);
                 const data = await response.json();
-                document.getElementById('daily-energy').textContent = (data.total_energy_kwh || 0).toFixed(1) + ' kWh';
-                document.getElementById('max-power').textContent = (data.max_power_w || 0) + ' W';
-                document.getElementById('readings-count').textContent = data.readings_count || 0;
-                document.getElementById('avg-temp').textContent = (data.avg_temperature_c || 0).toFixed(1) + ' °C';
+                updateStatsDisplay({
+                    ...data,
+                    daily_peak_w: data.max_power_w,
+                });
             } catch (error) {
-                console.error('Error fetching stats:', error);
+                console.error("Error fetching stats:", error);
+                updateStatsFromReadings(lastReadings);
             }
         }
 
-        // Update charts
-        function updateCharts(readings) {
-            if (!readings || readings.length === 0) return;
+        function updateStatsFromReadings(readings) {
+            if (!readings || readings.length === 0) {
+                updateStatsDisplay({});
+                return;
+            }
 
-            // Reverse to show oldest first
-            const sorted = [...readings].reverse();
+            const parsed = readings
+                .map((r) => ({
+                    ts: r.timestamp ? new Date(r.timestamp) : null,
+                    ...r,
+                }))
+                .filter((r) => r.ts && !isNaN(r.ts))
+                .sort((a, b) => a.ts - b.ts);
 
-            const labels = sorted.map(r => {
-                const d = new Date(r.timestamp);
-                return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            if (parsed.length === 0) {
+                updateStatsDisplay({});
+                return;
+            }
+
+            const aggregates = buildDailyAggregates(parsed);
+            const aggregateList = Object.entries(aggregates).map(([date, data]) => ({
+                date,
+                ...data,
+            }));
+
+            const maxPower = aggregateList.reduce((max, r) => Math.max(max, toNumber(r.peak)), 0);
+            const maxPeakEntry = aggregateList.reduce((best, cur) =>
+                !best || toNumber(cur.peak) > toNumber(best.peak) ? cur : best, null);
+
+            const maxEnergyEntry = aggregateList.reduce((best, cur) =>
+                !best || toNumber(cur.energy) > toNumber(best.energy) ? cur : best, null);
+
+            const totalEnergy = aggregateList.reduce((sum, r) => sum + toNumber(r.energy), 0);
+            const avgTemp =
+                parsed.reduce((sum, r) => sum + toNumber(r.temperature_c), 0) / parsed.length;
+
+            updateStatsDisplay({
+                total_energy_kwh: totalEnergy || toNumber(parsed.at(-1)?.daily_energy_kwh),
+                max_power_w: maxPower,
+                daily_peak_w: maxPeakEntry?.peak || maxPower,
+                max_daily_energy_kwh: maxEnergyEntry?.energy,
+                max_daily_energy_date: maxEnergyEntry?.date,
+                readings_count: parsed.length,
+                avg_temperature_c: avgTemp,
             });
+        }
 
-            const powerData = sorted.map(r => r.total_active_power_w || 0);
-            const energyData = sorted.map(r => r.daily_energy_kwh || 0);
+        function updateStatsDisplay(data) {
+            document.getElementById("daily-energy").textContent = (data.total_energy_kwh || 0).toFixed(1) + " kWh";
+            document.getElementById("max-power").textContent = (data.max_power_w || 0) + " W";
+            document.getElementById("readings-count").textContent = data.readings_count || 0;
+            document.getElementById("avg-temp").textContent = (data.avg_temperature_c || 0).toFixed(1) + " °C";
+            if (dailyPeakEl) {
+                const peak = data.daily_peak_w ?? data.max_power_w ?? 0;
+                dailyPeakEl.textContent = peak ? `${peak} W` : "-- W";
+            }
+            if (maxDailyEnergyEl) {
+                const card = document.getElementById("max-daily-energy-card");
+                const shouldShow = currentPeriod === "month" || currentPeriod === "year";
+                if (!shouldShow) {
+                    if (card) card.style.display = "none";
+                    maxDailyEnergyEl.textContent = "-- kWh";
+                } else {
+                    const energy = data.max_daily_energy_kwh;
+                    const date = data.max_daily_energy_date;
+                    if (energy && energy > 0) {
+                        if (card) card.style.display = "block";
+                        maxDailyEnergyEl.textContent = `${energy.toFixed(1)} kWh${date ? " (" + date + ")" : ""}`;
+                    } else {
+                        if (card) card.style.display = "none";
+                        maxDailyEnergyEl.textContent = "-- kWh";
+                    }
+                }
+            }
+        }
 
-            powerChart.data.labels = labels;
-            powerChart.data.datasets[0].data = powerData;
+        // Update charts with new data
+        function updateCharts(data) {
+            const parsed = (data || [])
+                .map((d) => ({
+                    ...d,
+                    ts: d.timestamp ? new Date(d.timestamp) : null,
+                }))
+                .filter((d) => d.ts && !isNaN(d.ts))
+                .sort((a, b) => a.ts - b.ts);
+
+            if (parsed.length === 0) {
+                return;
+            }
+
+            const lastTs = parsed[parsed.length - 1].ts;
+            const twoHoursAgo = new Date(lastTs.getTime() - 2 * 60 * 60 * 1000);
+
+            const powerData = parsed.filter((d) => d.ts >= twoHoursAgo);
+            powerChart.data.labels = powerData.map((d) => d.ts.toLocaleTimeString("pt-BR"));
+            powerChart.data.datasets[0].data = powerData.map((d) => toNumber(d.total_active_power_w));
             powerChart.update();
 
-            energyChart.data.labels = labels;
-            energyChart.data.datasets[0].data = energyData;
+            energyChart.data.labels = parsed.map((d) => d.ts.toLocaleTimeString("pt-BR"));
+            energyChart.data.datasets[0].data = parsed.map((d) => toNumber(d.daily_energy_kwh));
             energyChart.update();
         }
 
-        // Update table
-        function updateTable(readings) {
-            const tbody = document.getElementById('readings-tbody');
-            tbody.innerHTML = '';
+        // Update table with latest readings
+        function updateTable(data) {
+            const tbody = document.getElementById("readings-tbody");
 
-            readings.forEach(r => {
-                const d = new Date(r.timestamp);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${d.toLocaleTimeString('pt-BR')}</td>
-                    <td>${r.total_active_power_w || 0} W</td>
-                    <td>${(r.daily_energy_kwh || 0).toFixed(1)} kWh</td>
-                    <td>${(r.temperature_c || 0).toFixed(1)} °C</td>
-                    <td>${(r.grid_voltage_v || 0).toFixed(1)} V</td>
-                    <td>${r.is_online ? 'Online' : 'Offline'}</td>
-                `;
-                tbody.appendChild(tr);
+            if (!data || data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6'>Nenhuma leitura disponivel</td></tr>";
+                return;
+            }
+
+            // Keep only one reading per minute (latest occurrence per minute)
+            const seenMinutes = new Set();
+            const perMinute = [];
+            data.forEach((d) => {
+                const ts = d.timestamp ? new Date(d.timestamp) : null;
+                if (!ts || isNaN(ts)) return;
+                const minuteKey = ts.toISOString().slice(0, 16); // yyyy-mm-ddThh:mm
+                if (seenMinutes.has(minuteKey)) {
+                    return;
+                }
+                seenMinutes.add(minuteKey);
+                perMinute.push(d);
             });
+
+            const rows = perMinute.slice(0, 30).map((d) => {
+                const power = toNumber(d.total_active_power_w);
+                const energy = toNumber(d.daily_energy_kwh);
+                const temperature = toNumber(d.temperature_c);
+                const voltage = toNumber(d.grid_voltage_v);
+                const status = d.running_state_string || "Desconhecido";
+
+                return `
+                    <tr>
+                        <td>${formatTime(d.timestamp)}</td>
+                        <td>${power.toFixed(0)} W</td>
+                        <td>${energy.toFixed(2)} kWh</td>
+                        <td>${temperature.toFixed(1)} °C</td>
+                        <td>${voltage.toFixed(1)} V</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rows.join("");
         }
 
-        // Initialize
-        initCharts();
-        fetchReadings();
-        fetchStats();
+        function applyFilter() {
+            const range = getSelectedRange();
+            updateEnergyLabel();
+            fetchReadings(range);
+        }
 
-        // Refresh every 30 seconds
-        setInterval(() => {
-            fetchReadings();
-            fetchStats();
-        }, 30000);
+        function buildDailyAggregates(readings) {
+            const grouped = {};
+            (readings || []).forEach((r) => {
+                const ts = r.timestamp ? new Date(r.timestamp) : null;
+                if (!ts || isNaN(ts)) return;
+                const dateKey = ts.toISOString().slice(0, 10);
+                const power = toNumber(r.total_active_power_w);
+                const energy = toNumber(r.daily_energy_kwh);
+                if (!grouped[dateKey]) {
+                    grouped[dateKey] = { peak: power, energy };
+                } else {
+                    grouped[dateKey].peak = Math.max(grouped[dateKey].peak, power);
+                    grouped[dateKey].energy = Math.max(grouped[dateKey].energy, energy);
+                }
+            });
+            return grouped;
+        }
+
+        function updateTopPeaks(readings) {
+            if (!topPeaksCard || !topPeaksList) return;
+
+            if (currentPeriod !== "month" && currentPeriod !== "year") {
+                topPeaksCard.style.display = "none";
+                return;
+            }
+
+            const aggregated = buildDailyAggregates(readings);
+            const peaks = Object.entries(aggregated)
+                .map(([date, data]) => ({ date, peak: data.peak }))
+                .sort((a, b) => b.peak - a.peak)
+                .slice(0, 10);
+
+            topPeaksCard.style.display = "block";
+            topPeaksCard.querySelector("h2").textContent =
+                currentPeriod === "month" ? "Top 10 Picos (Mês)" : "Top 10 Picos (Ano)";
+
+            if (peaks.length === 0) {
+                topPeaksList.innerHTML = "<li>Sem dados para este mês</li>";
+                return;
+            }
+
+            topPeaksList.innerHTML = peaks
+                .map(({ date, peak }) => `<li><span>${peak} W</span> — ${date}</li>`)
+                .join("");
+        }
+
+        // Initial data load
+        document.addEventListener("DOMContentLoaded", () => {
+            initCharts();
+            setPeriodInputType();
+            applyFilter();
+
+            periodSelect.addEventListener("change", () => {
+                currentPeriod = periodSelect.value;
+                setPeriodInputType();
+                applyFilter();
+            });
+
+            periodValue.addEventListener("change", applyFilter);
+
+            applyFilterBtn.addEventListener("click", applyFilter);
+
+            setInterval(() => {
+                applyFilter();
+            }, 60000);
+        });
+
     </script>
 </body>
 </html>

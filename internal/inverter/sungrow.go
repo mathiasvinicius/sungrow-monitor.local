@@ -169,6 +169,9 @@ func (s *Sungrow) ReadAllData() (*InverterData, error) {
 	} else {
 		data.RunningStateString = "Unknown"
 	}
+	if data.RunningStateString == "Stop" && data.TotalActivePower > 0 {
+		data.RunningStateString = "Running"
+	}
 
 	if faultCode, err := s.client.ReadUint16(RegFaultCode); err == nil {
 		data.FaultCode = faultCode

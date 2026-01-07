@@ -9,11 +9,18 @@
 <body>
     <div class="container">
         <header>
-            <h1>Sungrow SG5.0RS-S</h1>
-            <div class="status-indicator">
-                <span id="status-dot" class="status-dot offline"></span>
-                <span id="status-text">Offline</span>
+            <div class="header-top">
+                <h1>Sungrow SG5.0RS-S</h1>
+                <div class="status-indicator">
+                    <span id="status-dot" class="status-dot offline"></span>
+                    <span id="status-text">Offline</span>
+                </div>
             </div>
+            <nav class="nav-links">
+                <a href="/" class="active">Dashboard</a>
+                <a href="/history">Histórico</a>
+                <a href="/settings">Configurações</a>
+            </nav>
         </header>
 
         <main>
@@ -70,7 +77,7 @@
                     <div class="card-body">
                         <div class="mppt-values">
                             <div class="mppt-item">
-                                <span class="label">Tensao</span>
+                                <span class="label">Tensão</span>
                                 <span class="value"><span id="mppt1-voltage">--</span> V</span>
                             </div>
                             <div class="mppt-item">
@@ -78,7 +85,7 @@
                                 <span class="value"><span id="mppt1-current">--</span> A</span>
                             </div>
                             <div class="mppt-item">
-                                <span class="label">Potencia</span>
+                                <span class="label">Potência</span>
                                 <span class="value"><span id="mppt1-power">--</span> W</span>
                             </div>
                         </div>
@@ -92,7 +99,7 @@
                     <div class="card-body">
                         <div class="mppt-values">
                             <div class="mppt-item">
-                                <span class="label">Tensao</span>
+                                <span class="label">Tensão</span>
                                 <span class="value"><span id="mppt2-voltage">--</span> V</span>
                             </div>
                             <div class="mppt-item">
@@ -100,7 +107,7 @@
                                 <span class="value"><span id="mppt2-current">--</span> A</span>
                             </div>
                             <div class="mppt-item">
-                                <span class="label">Potencia</span>
+                                <span class="label">Potência</span>
                                 <span class="value"><span id="mppt2-power">--</span> W</span>
                             </div>
                         </div>
@@ -111,16 +118,16 @@
             <!-- Grid Card -->
             <div class="card grid-card">
                 <div class="card-header">
-                    <h2>Rede Eletrica</h2>
+                    <h2>Rede Elétrica</h2>
                 </div>
                 <div class="card-body">
                     <div class="grid-values">
                         <div class="grid-item">
-                            <span class="label">Tensao</span>
+                            <span class="label">Tensão</span>
                             <span class="value"><span id="grid-voltage">--</span> V</span>
                         </div>
                         <div class="grid-item">
-                            <span class="label">Frequencia</span>
+                            <span class="label">Frequência</span>
                             <span class="value"><span id="grid-frequency">--</span> Hz</span>
                         </div>
                         <div class="grid-item">
@@ -128,7 +135,7 @@
                             <span class="value"><span id="grid-current">--</span> A</span>
                         </div>
                         <div class="grid-item">
-                            <span class="label">Fator de Potencia</span>
+                            <span class="label">Fator de Potência</span>
                             <span class="value"><span id="power-factor">--</span></span>
                         </div>
                     </div>
@@ -155,8 +162,35 @@
                             <span class="value" id="serial-number">--</span>
                         </div>
                         <div class="status-item">
-                            <span class="label">Ultima Atualizacao</span>
+                            <span class="label">Última Atualização</span>
                             <span class="value" id="last-update">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inteligência Card -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <h2>Diagnóstico Inteligente</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-values">
+                        <div class="status-item">
+                            <span class="label">Situação</span>
+                            <span class="value" id="insight-status">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Detalhe</span>
+                            <span class="value" id="insight-detail">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Clima</span>
+                            <span class="value" id="insight-weather">--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Comparação</span>
+                            <span class="value" id="insight-comparison">--</span>
                         </div>
                     </div>
                 </div>

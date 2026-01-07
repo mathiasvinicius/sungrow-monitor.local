@@ -1,23 +1,28 @@
-inverter:
-  ip: "172.16.0.120"
-  port: 502
-  slave_id: 1
-  timeout: 10s
-
-collector:
-  interval: 30s
-  enabled: true
-
 api:
-  port: 8080
-  enabled: true
-  web_path: "/app/web"
-
-mqtt:
-  enabled: true
-  broker: "tcp://mosquitto:1883"
-  topic_prefix: "sungrow"
-  client_id: "sungrow-monitor"
-
+    enabled: true
+    port: 8045
+    web_path: /app/web
+collector:
+    enabled: true
+    interval: 30s
 database:
-  path: "/data/sungrow.db"
+    path: /data/sungrow.db
+inverter:
+    ip: 172.16.0.119
+    port: 502
+    slave_id: 1
+    timeout: 10s
+mqtt:
+    broker: tcp://mosquitto:1883
+    client_id: sungrow-monitor
+    enabled: true
+    topic_prefix: sungrow
+weather:
+    enabled: true
+    provider: openmeteo
+    api_key: ""
+    city: "Holambra"
+    country: "BR"
+    latitude: -22.613611
+    longitude: -47.066861
+    units: metric

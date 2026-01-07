@@ -40,7 +40,7 @@ collector:
   enabled: true
 
 api:
-  port: 8080
+  port: 8045
   enabled: true
   web_path: "/app/web"
 
@@ -54,7 +54,21 @@ mqtt:
 
 database:
   path: "/data/sungrow.db"
+
+weather:
+  enabled: false
+  provider: "openweather"
+  api_key: ""
+  city: ""
+  country: ""
+  latitude: 0
+  longitude: 0
+  units: "metric"
 ```
+
+Provedores de clima:
+- `openweather`: requer API key.
+- `openmeteo`: sem cadastro/API key; aceita cidade/país ou latitude/longitude.
 
 ## Como usar (Docker)
 
@@ -66,8 +80,8 @@ docker compose up -d --build
 ```
 
 3. Acesse:
-- Dashboard: `http://<IP_DO_HOST>:8080/`
-- Health: `http://<IP_DO_HOST>:8080/health`
+- Dashboard: `http://<IP_DO_HOST>:8045/`
+- Health: `http://<IP_DO_HOST>:8045/health`
 
 Se o inversor estiver na rede local e houver problema de roteamento a partir da rede bridge do Docker, use `network_mode: host` (comentado no `docker-compose.yaml`).
 
@@ -93,6 +107,7 @@ Comandos úteis:
 - `GET /api/v1/energy/daily?date=YYYY-MM-DD`
 - `GET /api/v1/energy/total`
 - `GET /api/v1/stats/daily?date=YYYY-MM-DD`
+- `GET /api/v1/insights/production`
 
 ## MQTT / Home Assistant
 
@@ -103,6 +118,6 @@ Quando `mqtt.enabled: true`, o serviço publica:
 
 ## Troubleshooting
 
-- **HTTP não abre**: confirme se o container está publicando `8080:8080` e se o processo iniciou (logs: `docker logs -f sungrow-monitor`).
+- **HTTP não abre**: confirme se o container está publicando `8045:8045` e se o processo iniciou (logs: `docker logs -f sungrow-monitor`).
 - **MQTT não conecta**: garanta que `mqtt.broker` aponta para um host resolvível a partir do container (no `docker-compose`, `mosquitto` funciona via rede interna).
 - **Erro Modbus** (`connect: connection refused/timeout`): verifique IP/porta do inversor, conectividade de rede e se o Modbus TCP está habilitado no equipamento.

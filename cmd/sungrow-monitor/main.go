@@ -115,10 +115,12 @@ func serveCmd() *cobra.Command {
 			// Start API server if enabled
 			if cfg.API.Enabled {
 				server := api.NewServer(api.ServerConfig{
-					Port:      cfg.API.Port,
-					Collector: coll,
-					Database:  db,
-					WebPath:   cfg.API.WebPath,
+					Port:       cfg.API.Port,
+					Collector:  coll,
+					Database:   db,
+					WebPath:    cfg.API.WebPath,
+					Config:     cfg,
+					ConfigPath: configFile,
 				})
 
 				go func() {

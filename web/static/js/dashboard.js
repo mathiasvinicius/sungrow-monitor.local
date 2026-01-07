@@ -24,11 +24,16 @@ const elements = {
     runningState: document.getElementById('running-state'),
     temperature: document.getElementById('temperature'),
     serialNumber: document.getElementById('serial-number'),
-    lastUpdate: document.getElementById('last-update')
+    lastUpdate: document.getElementById('last-update'),
+    insightStatus: document.getElementById('insight-status'),
+    insightDetail: document.getElementById('insight-detail'),
+    insightWeather: document.getElementById('insight-weather'),
+    insightComparison: document.getElementById('insight-comparison')
 };
 
 // Nominal power in Watts
 const NOMINAL_POWER = 5000;
+const INSIGHT_INTERVAL = 60000; // 60 seconds
 
 // Fetch data from API
 async function fetchStatus() {
@@ -43,6 +48,20 @@ async function fetchStatus() {
     } catch (error) {
         console.error('Error fetching status:', error);
         setOnlineStatus(false);
+    }
+}
+
+async function fetchInsights() {
+    try {
+        const response = await fetch(`${API_BASE}/insights/production`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        updateInsights(data);
+    } catch (error) {
+        console.error('Error fetching insights:', error);
+        setInsightsFallback();
     }
 }
 
@@ -88,6 +107,51 @@ function updateDashboard(data) {
     }
 }
 
+function updateInsights(data) {
+    elements.insightStatus.textContent = data.message || '--';
+    elements.insightDetail.textContent = formatInsightDetail(data);
+    elements.insightWeather.textContent = data.weather_label || '--';
+
+    if (data.expected_avg_w && data.actual_power_w && data.ratio) {
+        const ratioPercent = (data.ratio * 100).toFixed(0);
+        elements.insightComparison.textContent = `${data.actual_power_w}W / ${Math.round(data.expected_avg_w)}W (${ratioPercent}%)`;
+    } else if (data.expected_avg_w) {
+        elements.insightComparison.textContent = `Média: ${Math.round(data.expected_avg_w)}W`;
+    } else {
+        elements.insightComparison.textContent = '--';
+    }
+}
+
+function setInsightsFallback() {
+    elements.insightStatus.textContent = '--';
+    elements.insightDetail.textContent = '--';
+    elements.insightWeather.textContent = '--';
+    elements.insightComparison.textContent = '--';
+}
+
+function formatInsightDetail(data) {
+    if (!data || !data.status) {
+        return '--';
+    }
+
+    if (data.status === 'night') {
+        return 'Janela noturna';
+    }
+    if (data.status === 'insufficient_history') {
+        return 'Histórico insuficiente';
+    }
+    if (data.status === 'low_power_unexpected') {
+        return 'Possível anomalia';
+    }
+    if (data.status === 'low_power_weather') {
+        return 'Impacto do clima';
+    }
+    if (data.status === 'normal') {
+        return 'Dentro do esperado';
+    }
+    return '--';
+}
+
 // Set online/offline status
 function setOnlineStatus(online) {
     if (online) {
@@ -111,9 +175,11 @@ function formatNumber(value, decimals = 0) {
 
 // Initial fetch
 fetchStatus();
+fetchInsights();
 
 // Set up interval for updates
 setInterval(fetchStatus, UPDATE_INTERVAL);
+setInterval(fetchInsights, INSIGHT_INTERVAL);
 
 // Health check
 async function checkHealth() {
